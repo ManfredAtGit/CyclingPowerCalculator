@@ -767,7 +767,17 @@
                         .replace(/!\[(.*?)\]\((.*?)\)/gim, "<img alt='$1' src='$2' />") // images
                         .replace(/\[(.*?)\]\((.*?)\)/gim, "<a href='$2'>$1</a>") // links
                         .replace(/\n$/gim, '<br />') // line breaks -  Consider more robust paragraph handling
-                        .replace(/\n/gim, '<p></p>'); // paragraphs - Basic paragraph replacement, might need improvement
+                        .replace(/\n/gim, '<p></p>') // paragraphs - Basic paragraph replacement, might need improvement
+
+                        // Additional translations
+                        .replace(/`([^`]*)`/gim, '<code>$1</code>') // Inline code
+                        .replace(/^(-|\*) (.*$)/gim, '<li>$2</li>') // List items
+                        .replace(/^(<li>.*<\/li>)+/gim, '<ul>$&</ul>') // Wrap list items in <ul>
+                        .replace(/```([^]*)```/gim, '<pre><code>$1</code></pre>') // Code blocks
+
+                        // Handle headers containing special characters or inline code
+                        .replace(/^## ([^(]+)\((.*)\)$/gim, (match, text, inlineCode) => `<h3>${text} (<code>${inlineCode}</code>)</h3>`)
+                        .replace(/^## ([^(]+)<([^>]*)>$/gim, (match, text, inlineCode) => `<h3>${text} (<code>${inlineCode}</code>)</h3>`);
 
                     readmeContentDiv.innerHTML = html;
                 })
