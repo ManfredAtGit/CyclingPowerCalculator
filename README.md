@@ -91,3 +91,16 @@ Key features include:
 - add ascent and descent as input control and use in power calculation
 - add further input control for body weight, bike weight, ftp, etc. (possibly use menue control to avoid overcrowded page)
 - add more realistic cyclist movement (e.g. using a physics engine)
+
+
+# Disclaimer
+
+The power and heart rate values provided by this visualization are estimates.  They are intended for illustrative and educational purposes only and should not be used for training or medical decisions.
+
+For accurate power and heart rate data, use dedicated sensors and consult with a qualified professional.
+
+[Wikipedia Link](https://en.wikipedia.org/wiki/Bicycle_performance)
+
+© 2025 Manfred's Bicycle Performance Visualization  
+with the friendly help from [Gemini canvas for code generation](https://codeassist.google/)
+

@@ -744,7 +744,11 @@
             // Use a proxy to avoid CORS issues.  Replace with a suitable proxy if needed.
             const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Or another CORS proxy
             const readmeUrl = 'README.md';
-            fetch(proxyUrl + readmeUrl)
+            gitUrl='https://raw.githubusercontent.com/ManfredAtGit/CyclingPowerCalculator/refs/heads/main/README.md';
+
+
+            fetch(gitUrl)
+            //fetch(proxyUrl + readmeUrl)
             //fetch('README.md')
                 .then(response => {
                     if (!response.ok) {
