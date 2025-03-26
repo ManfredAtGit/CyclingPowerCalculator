@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Visualization</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.139.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.139.0/examples/js/controls/OrbitControls.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+        #visualizationCanvas {
+            width: 100%;
+            height: 100vh;
+            display: block;
+        }
+        .slider-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            transform: translateX(0);
+            z-index: 10;
+            width: 80%;
+            max-width: 400px;
+            padding: 16px;
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Align items to the start (top in column) */
+        }
+        .slider-title {
+            color: #333;
+            font-size: 1.2em;
+            margin-bottom: 8px;
+            text-align: left; /* Changed to left */
+            width: 100%; /* Ensure title takes full width */
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 80%; /* 80% of the container */
+            height: 6px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+            margin-bottom: 10px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+        }
+        input[type="range"]:focus::-webkit-slider-thumb {
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+        }
+        input[type="range"]:focus::-moz-range-thumb {
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+        }
+        .bike-icon {
+            font-size: 24px;
+            color: #00ffff;
+            position: absolute;
+            transform: translate(-50%, -50%);
+        }
+        #windDirectionControl {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+        }
+
+        #windDirectionControl .compass-center {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #333;
+        }
+
+        #windDirectionControl .arrow {
+            width: 2px;
+            height: 40px;
+            background-color: #007bff;
+            position: absolute;
+            transform-origin: center;
+            transition: transform 0.1s ease;
+        }
+
+        #windDirectionControl .arrow::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -5px;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 10px solid #007bff;
+        }
+
+        #windDirectionControl .direction-label {
+            position: absolute;
+            font-size: 0.7em;
+            color: #666;
+            pointer-events: none;
+        }
+
+        #windDirectionControl .north {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #windDirectionControl .east {
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #windDirectionControl .south {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #windDirectionControl .west {
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .wind-arrow {
+            font-size: 16px;
+            color: rgba(0, 255, 255, 0.7);
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            pointer-events: none;
+        }
+        .slider-value {
+            color: #007bff; /* Changed to match slider thumb color */
+            font-size: 2.4em;
+            margin-left: 10px;
+            width: 20%;
+            text-align: center;
+            display: inline-block;
+        }
+        #powerDisplay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 1.5em;
+            color: #333;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            margin-left: 100px;
+        }
+        #powerBulb {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            z-index: 10;
+            font-size: 4em;
+            color: #ffff00;
+            text-shadow: 0 0 10px rgba(255, 255, 0, 0.8);
+            cursor: pointer;
+            transition: color 0.2s ease, text-shadow 0.2s ease;
+        }
+
+        #powerBulb:hover {
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 0, 1);
+        }
+
+        #heartBeatDisplay { /* New style for the heart rate display */
+            position: absolute;
+            top: 200px; /* Positioned below the power bulb */
+            right: 20px;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 1.5em;
+            color: #333;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            margin-left: 100px;
+        }
+
+        #heartBeatIcon {
+            position: absolute;
+            top: 300px; /* Adjust as needed to position it below heartBeatDisplay */
+            right: 30px; /* Adjust horizontal positioning as needed */
+            z-index: 10;
+            font-size: 4em; /* Adjust size as needed */
+            color: #ff4444; /* red */
+            animation: beat 1s infinite;
+            transform-origin: center;
+        }
+        @keyframes beat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        #infoButton {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            padding: 10px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 40px; /* Make it square */
+            height: 40px;
+            text-align: center; /* Center the icon */
+            line-height: 0; /* Vertically center the icon */
+        }
+
+        #infoButton:hover {
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            z-index: 100;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .popup h2 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .popup p {
+            font-size: 1.1em;
+            line-height: 1.5;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        .popup ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .popup li {
+            font-size: 1.1em;
+            line-height: 1.5;
+            color: #444;
+        }
+
+        .popup strong {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .popup a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .popup a:hover {
+            text-decoration: underline;
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.2s ease;
+        }
+
+        .popup-close:hover {
+            color: #333;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center">
+    <canvas id="visualizationCanvas"></canvas>
+    <div class="slider-container">
+        <label for="speedSlider" class="slider-title">Speed Control</label>
+        <div style="display: flex; align-items: center; width: 100%;">
+            <input type="range" min="0" max="80" value="1" step="1" id="speedSlider">
+            <span id="speedValue" class="slider-value">1</span>
+        </div>
+        <label for="windForceSlider" class="slider-title">Wind Force</label>
+        <div style="display: flex; align-items: center; width: 100%;">
+            <input type="range" min="0" max="50" value="0" step="1" id="windForceSlider">
+            <span id="windForceValue" class="slider-value">0</span>
+        </div>
+    </div>
+    <div id="windDirectionControl">
+        <div class="compass-center"></div>
+        <div class="arrow" id="windDirectionArrow"></div>
+        <div class="direction-label north">N</div>
+        <div class="direction-label east">E</div>
+        <div class="direction-label south">S</div>
+        <div class="direction-label west">W</div>
+    </div>
+    <div id="powerDisplay">Power: <span id="powerValue">0</span> W</div>
+    <div id="powerBulb"><i class="fas fa-lightbulb"></i></div>
+    <div id="heartBeatDisplay">Heart Rate: <span id="heartBeatValue">0</span> bpm</div>
+    <div id="heartBeatIcon"><i class="fas fa-heart"></i></div>
+    <div id="infoButton"><i class="fas fa-info-circle"></i></div>
+
+    <div id="infoPopup" class="popup">
+        <h2>Project Description</h2>
+        <p>
+            This visualization tool simulates a cyclist's power output, taking into account factors such as speed, wind conditions, and physical attributes.  It allows you to experiment with different conditions and see how they affect the cyclist's performance.
+        </p>
+
+        <h3>Key Features</h3>
+        <ul>
+            <li><strong>Speed Control:</strong> Adjust the cyclist's speed using the slider.  The visualization updates in real-time to reflect the change.</li>
+            <li><strong>Wind Simulation:</strong>  Control the wind speed and direction to see how it impacts the cyclist.  The wind direction is interactive; you can click and drag to change it.</li>
+            <li><strong>Power Display:</strong>  The estimated power output of the cyclist (in watts) is displayed based on the simulation parameters.</li>
+            <li><strong>Dynamic Visuals:</strong>  The speed of the cyclist is represented by moving bicycle icons, and wind conditions are shown with animated arrows.</li>
+             <li><strong>Heart Rate Estimation:</strong>  An estimated heart rate is calculated based on the power output.</li>
+        </ul>
+
+        <h3>Technical Details</h3>
+        <p>
+            The visualization is built using HTML, CSS, and JavaScript.  The 3D scene is rendered using Three.js.  The core calculations, including power estimation and wind speed adjustments, are performed in JavaScript.
+        </p>
+
+        <h3>User Interaction</h3>
+        <p>
+            The application is interactive.  You can use the sliders to change speed and wind force, and click and drag the wind direction control.  The visualization updates immediately to show the effect of these changes.
+        </p>
+
+        <h3>Formulae</h3>
+
+        <h4>Power Calculation</h4>
+        <p>
+            The cyclist's power is calculated using the following formula:
+        </p>
+        <p>
+            \( P = D + R \)
+        </p>
+
+        <p>
+            Where:
+        </p>
+        <ul>
+            <li>\( P \) is the total power (watts)</li>
+            <li>\( D \) is the drag power (watts)</li>
+            <li>\( R \) is the rolling resistance power (watts)</li>
+        </ul>
+
+        <p>
+            The drag power is calculated as:
+        </p>
+        <p>
+            \( D = 0.5 * \rho * C_d * A * v_{rel}^2 * v \)
+        </p>
+        <p>
+        Where:
+        </p>
+        <ul>
+            <li>\( \rho \) is the air density (1.225 kg/m³)</li>
+             <li>\( C_d \) is the drag coefficient (0.4)</li>
+            <li>\( A \) is the frontal area (0.5 m²)</li>
+            <li>\( v_{rel} \) is the relative wind speed (m/s)</li>
+            <li>\( v \) is the cyclist's speed (m/s)</li>
+        </ul>
+
+        <p>
+            The rolling resistance power is calculated as:
+        </p>
+        <p>
+            \( R = C_{rr} * m * g * v \)
+        </p>
+        <p>
+            Where:
+        </p>
+        <ul>
+            <li>\( C_{rr} \) is the rolling resistance coefficient (0.005)</li>
+            <li>\( m \) is the total mass of the cyclist and bike (kg)</li>
+            <li>\( g \) is the acceleration due to gravity (9.81 m/s²)</li>
+             <li>\( v \) is the cyclist's speed (m/s)</li>
+        </ul>
+
+        <h4>Heart Rate Estimation</h4>
+        <p>
+            The heart rate is estimated using a linear relationship with power output, relative to a functional threshold power (FTP).
+        </p>
+        <p>
+            \( HR = (P / FTP) * (HR_{max} - HR_{min}) + HR_{min} \)
+        </p>
+        <p>
+            Where:
+        </p>
+        <ul>
+            <li>\( HR \) is the estimated heart rate (bpm)</li>
+            <li>\( P \) is the power output (watts)</li>
+            <li>\( FTP \) is the functional threshold power (default: 170 watts)</li>
+            <li>\( HR_{max} \) is the maximum heart rate (default: 180 bpm)</li>
+            <li>\( HR_{min} \) is the minimum heart rate (default: 60 bpm)</li>
+        </ul>
+
+        <p>
+            This formula provides an approximation.  Actual heart rate can vary significantly based on individual fitness, fatigue, and other factors.
+        </p>
+        <p>
+            The heart rate is capped at  \( HR_{max} \).
+        </p>
+
+        <h3>Disclaimer</h3>
+        <p>
+            The power and heart rate values provided by this visualization are estimates.  They are intended for illustrative and educational purposes only and should not be used for training or medical decisions.
+        </p>
+        <p>
+            For accurate power and heart rate data, use dedicated sensors and consult with a qualified professional.
+        </p>
+        <a href="https://en.wikipedia.org/wiki/Bicycle_performance">Wikipedia Link</a>
+        <p>
+            &copy; 2025 Manfred's Bicycle Performance Visualization
+            with the friendly help from <a href="https://codeassist.google/"></a> Gemini canvas for code generation
+        </p>
+
+        <div class="popup-close">&times;</div>
+    </div>
+
+    <script>
+
+        function calculateCyclistPower(
+            cyclistSpeedKmh = 30,
+            windSpeedKmh = 15,
+            windDirectionDegrees = 0,
+            cyclistDirectionDegrees = 90,
+            bodyWeight = 70,
+            bikeWeight = 10) {
+            /**
+             * Calculates the power a cyclist needs to produce, considering wind.
+             *
+             * @param cyclistSpeedKmh Cyclist speed in km/h.
+             * @param windSpeedKmh True wind speed in km/h.
+             * @param windDirectionDegrees Wind direction in degrees (0 = headwind, 180 = tailwind).
+             * @param cyclistDirectionDegrees The direction in degrees the cyclist is riding (default from west to east).
+             * @param bodyWeight Cyclist's body weight in kg.
+             * @param bikeWeight Bike weight in kg.
+             * @returns Total power in watts.
+             */
+
+            // Constants
+            const airDensity = 1.225; // kg/m^3
+            const dragCoefficient = 0.4;
+            const frontalArea = 0.5; // m^2
+            const rollingResistanceCoefficient = 0.005;
+            const cyclistBikeMass = bodyWeight + bikeWeight; // kg
+            const gravity = 9.81; // m/s^2
+
+            // Convert speeds to m/s
+            const cyclistSpeedMs = cyclistSpeedKmh / 3.6;
+            const windSpeedMs = windSpeedKmh / 3.6;
+
+            // Rotate by cyclist direction
+            let windCyclistDirDegrees = (windDirectionDegrees - cyclistDirectionDegrees) % 360;
+            if (windCyclistDirDegrees < 0) windCyclistDirDegrees += 360;
+
+            // Calculate relative wind speed
+            let windCyclistDirFlipped = (180 - windCyclistDirDegrees) % 360;
+            if (windCyclistDirFlipped < 0) windCyclistDirFlipped += 360;
+            const windDirectionRadians = (windCyclistDirFlipped * Math.PI) / 180;
+            const relativeWindSpeedMs = Math.sqrt(
+                Math.pow(cyclistSpeedMs, 2) +
+                Math.pow(windSpeedMs, 2) -
+                2 * cyclistSpeedMs * windSpeedMs * Math.cos(windDirectionRadians)
+            );
+
+            // Calculate drag force and power
+            const dragForce = 0.5 * airDensity * dragCoefficient * frontalArea * Math.pow(relativeWindSpeedMs, 2);
+            const dragPower = dragForce * cyclistSpeedMs;
+
+            // Calculate rolling resistance force and power
+            const rollingResistanceForce = rollingResistanceCoefficient * cyclistBikeMass * gravity;
+            const rollingResistancePower = rollingResistanceForce * cyclistSpeedMs;
+
+            // Calculate total power
+            const totalPower = dragPower + rollingResistancePower;
+
+            return totalPower;
+        }
+
+        function calculateHeartBeatsPerMinute(power, ftp=170) {
+
+            /**
+             * Calculates/estimates the heart beats rate as a function of power(watts) and functional threashold power.
+             *
+             * @param power in wats.
+             * @param ftp functional threashold power.
+             * @returns estimate for heart beats per minute.
+             */
+
+            const maxHearttRate = 180;
+            const minHeartRate = 60;
+
+            let calculatedValue = (power / ftp) * (maxHearttRate - minHeartRate) + minHeartRate;
+            //return (power / ftp) * (maxHearttRate - minHeartRate) + minHeartRate;
+            return Math.min(maxHearttRate,calculatedValue)
+        }
+
+        const canvas = document.getElementById('visualizationCanvas');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setClearColor(0x222222);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 7;
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.1;
+        controls.rotateSpeed = 0.5;
+        controls.enableRotate = false;
+        controls.enableZoom = false;
+
+        const bikes = [];
+        const bikeCount = 50;
+        for (let i = 0; i < bikeCount; i++) {
+            const bike = {
+                element: document.createElement('div'),
+                x: (Math.random() - 0.5) * 10,
+                y: (Math.random() - 0.5) * 10,
+                z: (Math.random() - 0.5) * 10,
+                rotation: Math.PI / 0.5,
+                xSpeed: -0.002,
+                ySpeed: 0,
+                zSpeed: 0,
+            };
+            bike.element.classList.add('bike-icon');
+            bike.element.innerHTML = '<i class="fas fa-bicycle"></i>';
+            document.body.appendChild(bike.element);
+            bikes.push(bike);
+        }
+
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValueDisplay = document.getElementById('speedValue');
+        let speed = parseInt(speedSlider.value);
+
+        const windForceSlider = document.getElementById('windForceSlider');
+        const windForceValueDisplay = document.getElementById('windForceValue');
+        let windForce = parseInt(windForceSlider.value);
+
+        const windDirectionControl = document.getElementById('windDirectionControl');
+        const windDirectionArrow = document.getElementById('windDirectionArrow');
+
+        let windDirection = 0;
+        let isDragging = false;
+        let startAngle = 0;
+
+        const powerValueDisplay = document.getElementById('powerValue'); // Get the power display element
+        const powerBulb = document.getElementById('powerBulb');
+        let cyclistDirection = 90;
+
+        const heartBeatValueDisplay = document.getElementById('heartBeatValue'); // Get the heart rate display element
+
+        const heartBeatIcon = document.getElementById('heartBeatIcon'); // Get the heart icon element
+        let heartBeatInterval = null;
+
+        function updatePowerDisplay() {
+            const cyclistSpeed = parseFloat(speedSlider.value);
+            const windSpeed = parseFloat(windForceSlider.value);
+            // Convert windDirection from radians to degrees and normalize to 0-360 range
+            let windDirectionDegrees = (windDirection * 180 / Math.PI) % 360;
+            if (windDirectionDegrees < 0) {
+                windDirectionDegrees += 360;
+            }
+            const power = calculateCyclistPower(cyclistSpeed, windSpeed, windDirectionDegrees, cyclistDirection);
+            powerValueDisplay.textContent = power.toFixed(0); // Update the display
+
+            // Change bulb color based on power, interpolating between orange, yellow, and white
+            let bulbColor = '';
+            let shadowColor = '';
+            const maxPower = 500; // Adjust as needed
+            const normalizedPower = Math.min(power, maxPower) / maxPower; // Normalize to 0-1
+
+            if (normalizedPower < 0.33) { // Orange to Yellow
+                const red = 255;
+                const green = 165 + (255 - 165) * (normalizedPower / 0.33);
+                const blue = 0;
+                bulbColor = `rgb(${red}, ${green}, ${blue})`;
+                shadowColor = `rgba(${red}, ${green}, ${blue}, 0.6)`;
+            } else if (normalizedPower < 0.66) { // Yellow to White
+                const red = 255;
+                const green = 255;
+                const blue = (normalizedPower - 0.33) / 0.33 * 255;
+                bulbColor = `rgb(${red}, ${green}, ${blue})`;
+                shadowColor = `rgba(${red}, ${green}, ${blue}, 0.8)`;
+            } else { //接近白色
+                const red = 255;
+                const green = 255;
+                const blue = 255;
+                bulbColor = `rgb(${red}, ${green}, ${blue})`;
+                shadowColor = `rgba(${red}, ${green}, ${blue}, 1)`;
+            }
+
+            powerBulb.style.color = bulbColor;
+            powerBulb.style.textShadow = `0 0 15px ${shadowColor}`;
+
+            // Calculate and display heart rate
+            const heartRate = calculateHeartBeatsPerMinute(power);
+            heartBeatValueDisplay.textContent = heartRate.toFixed(0);
+
+            // Update heart beat animation
+            if (heartBeatInterval) {
+                clearInterval(heartBeatInterval);
+            }
+            const interval = 60000 / heartRate;
+            heartBeatInterval = setInterval(() => {
+                // Heart beat animation is handled by CSS, we just need to trigger it.
+                heartBeatIcon.style.animation = 'none';
+                void heartBeatIcon.offsetWidth; // Trigger reflow
+                heartBeatIcon.style.animation = 'beat 1s infinite';
+            }, interval);
+
+        }
+
+        speedSlider.addEventListener('input', (event) => {
+            speed = parseInt(event.target.value);
+            speedValueDisplay.textContent = speed.toFixed(0);
+            updatePowerDisplay(); // Update power on input change
+        });
+
+        windForceSlider.addEventListener('input', (event) => {
+            windForce = parseInt(event.target.value);
+            windForceValueDisplay.textContent = windForce.toFixed(0);
+            updatePowerDisplay(); // Update power on input change
+        });
+
+        windDirectionControl.addEventListener('mousedown', (event) => {
+            isDragging = true;
+            const rect = windDirectionControl.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const x = event.clientX - centerX;
+            const y = event.clientY - centerY;
+            startAngle = Math.atan2(y, x);
+        });
+
+        document.addEventListener('mousemove', (event) => {
+            if (!isDragging) return;
+            const rect = windDirectionControl.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const x = event.clientX - centerX;
+            const y = event.clientY - centerY;
+            let currentAngle = Math.atan2(y, x);
+            let deltaAngle = currentAngle - startAngle;
+
+            if (deltaAngle > Math.PI) {
+                deltaAngle -= 2 * Math.PI;
+            } else if (deltaAngle < -Math.PI) {
+                deltaAngle += 2 * Math.PI;
+            }
+            windDirection += deltaAngle;
+            startAngle = currentAngle;
+            windDirectionArrow.style.transform = `rotate(${windDirection}rad)`;
+
+            // Convert radians to degrees (0-360 range)
+            let degrees = (windDirection * 180 / Math.PI) % 360;
+            if (degrees < 0) {
+                degrees += 360;
+            }
+            console.log("Wind Direction:", degrees);
+            updatePowerDisplay(); // Update power on mousemove
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        function resizeRendererToDisplaySize(renderer) {
+            const canvas = renderer.domElement;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const needResize = canvas.width !== width || canvas.height !== height;
+            if (needResize) {
+                renderer.setSize(width, height, false);
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+            }
+            return needResize;
+        }
+
+        const windArrows = [];
+        const maxWindArrows = 100;
+        function createWindArrow(x, y) {
+            if (windArrows.length >= maxWindArrows) {
+                const arrowToRemove = windArrows.shift();
+                document.body.removeChild(arrowToRemove.element);
+            }
+            const arrow = {
+                element: document.createElement('div'),
+                x: x,
+                y: y,
+                rotation: windDirection + Math.PI,
+                speedX: 0,
+                speedY: 0,
+                age: 0,
+                size: 16,
+            };
+            arrow.element.classList.add('wind-arrow');
+            arrow.element.innerHTML = '<i class="fas fa-arrow-up"></i>';
+            document.body.appendChild(arrow.element);
+            windArrows.push(arrow);
+            return arrow;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            resizeRendererToDisplaySize(renderer);
+            controls.update();
+
+            bikes.forEach(bike => {
+                bike.x += speed * bike.xSpeed;
+                bike.y += bike.ySpeed;
+                bike.z += bike.zSpeed;
+
+                if (bike.x > 5) bike.x = -5;
+                if (bike.x < -5) bike.x = 5;
+
+                const vector = new THREE.Vector3(bike.x, bike.y, bike.z);
+                vector.project(camera);
+                const canvasRect = canvas.getBoundingClientRect();
+                const x2d = Math.round((vector.x + 1) * canvasRect.width / 2);
+                const y2d = Math.round((-vector.y + 1) * canvasRect.height / 2);
+
+                bike.element.style.left = `${x2d}px`;
+                bike.element.style.top = `${y2d}px`;
+                bike.element.style.transform = `translate(-50%, -50%) rotate(${bike.rotation}rad)`;
+            });
+
+            // Windarrow logic
+            if (Math.random() < 0.1) {
+                const x = (Math.random() - 0.5) * window.innerWidth;
+                const y = (Math.random() - 0.5) * window.innerHeight;
+                createWindArrow(x, y);
+            }
+
+            windArrows.forEach(arrow => {
+                const windSpeed = windForce * 0.2;
+                arrow.x += Math.cos(arrow.rotation + Math.PI * 1.5) * windSpeed;
+                arrow.y += Math.sin(arrow.rotation + Math.PI * 1.5) * windSpeed;
+                arrow.age += 1;
+
+                const canvasRect = canvas.getBoundingClientRect();
+                const x2d = arrow.x + canvasRect.width / 2;
+                const y2d = arrow.y + canvasRect.height / 2;
+                const sizeFactor = 1 + (windForce / 50) * 2;
+                arrow.size = 16 * sizeFactor;
+
+                // Color logic
+                let arrowColor = 'rgba(0, 255, 255, 0.7)';
+                let degrees = (windDirection * 180 / Math.PI) % 360;
+                if (degrees < 0) degrees += 360;
+
+                if (degrees >= 0 && degrees <= 180) {
+                    arrowColor = 'rgba(255, 0, 0, 0.7)';
+                } else {arrowColor = 'rgba(0, 255, 0, 0.7)';
+                }
+
+                arrow.element.style.left = `${x2d}px`;
+                arrow.element.style.top = `${y2d}px`;
+                arrow.element.style.fontSize = `${arrow.size}px`;
+                arrow.element.style.color = arrowColor;
+                arrow.element.style.transform = `translate(-50%, -50%) rotate(${arrow.rotation}rad)`;
+
+                if (arrow.age > 100 || x2d < 0 || x2d > canvasRect.width || y2d < 0 || y2d > canvasRect.height) {
+                    const index = windArrows.indexOf(arrow);
+                    if (index > -1) {
+                        windArrows.splice(index, 1);
+                        document.body.removeChild(arrow.element);
+                    }
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        resizeRendererToDisplaySize(renderer);
+        animate();
+
+        // Initial call of updatePowerDisplay
+        updatePowerDisplay();
+
+        // Get the info button and popup elements
+        const infoButton = document.getElementById('infoButton');
+        const infoPopup = document.getElementById('infoPopup');
+        const popupClose = document.querySelector('.popup-close');
+
+        // Event listener for the info button to show the popup
+        infoButton.addEventListener('click', () => {
+            infoPopup.style.display = 'block';
+        });
+
+        // Event listener for the close button to hide the popup
+        popupClose.addEventListener('click', () => {
+            infoPopup.style.display = 'none';
+        });
+
+        // Optional: Close popup when clicking outside of it
+        window.addEventListener('click', (event) => {
+            if (event.target === infoPopup) {
+                infoPopup.style.display = 'none';
+            }
+        });
+
+    </script>
+</body>
+</html>
