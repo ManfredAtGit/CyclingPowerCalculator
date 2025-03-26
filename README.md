@@ -3,6 +3,8 @@ is a web application that visualizes and animates the movement and power output 
 
 The application uses client-side only Javascipt
 
+[View on github pages](https://manfredatgit.github.io/CyclingPowerCalculator/)
+
 Key features include:
 
 ## Visualization
