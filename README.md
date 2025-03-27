@@ -27,7 +27,7 @@ Key features include:
 
 # Key Code Sections
 
-## HTML (`<body>`)
+## HTML (body)
 - **Canvas (`#visualizationCanvas`)**: The rendering area for the 3D scene.
 - **Speed Slider (`#speedSlider`)**: A slider to control the speed of the bicycle.
 - **Wind Force Slider (`#windForceSlider`)**: A slider to control the wind force.
@@ -37,7 +37,7 @@ Key features include:
 - **Heart Beat Display (`#heartBeatDisplay`)**: Displays calculated heart rate.
 - **Heart Beat Icon (`#heartBeatIcon`)**: An icon that beats with the heart rate.
 
-## CSS (`<style>`)
+## CSS (style)
 - Basic styling for the canvas, sliders, and controls.
 - Minimal 3D effects.
 - Positioning and layout of the control elements.
@@ -46,7 +46,7 @@ Key features include:
 - Styling for the power display and bulb.
 - Styling for the heart beat display and icon.
 
-## JavaScript (`<script>`)
+## JavaScript (script)
 
 ### Three.js Setup
 - Creates a `WebGLRenderer`, `Scene`, and `PerspectiveCamera`.
