@@ -12,6 +12,7 @@ Key features include:
 - however: currently this application is pure 2D
 
 ## User Controls
+- **Ascent Slider**: Controls the ascent/descend (currently not yet used for power calculation).
 - **Speed Slider**: Controls the speed of the cyclists.
 - **Wind Force Slider**: Controls the force of the wind.
 - **Wind Direction Control**: A circular control to set the wind direction.
@@ -29,6 +30,7 @@ Key features include:
 
 ## HTML (body)
 - **Canvas (`#visualizationCanvas`)**: The rendering area for the 3D scene.
+- **Ascent Slider (`#ascentSlider`)**: A slider to control the ascent of the ride (currently not used for power calculation).
 - **Speed Slider (`#speedSlider`)**: A slider to control the speed of the bicycle.
 - **Wind Force Slider (`#windForceSlider`)**: A slider to control the wind force.
 - **Wind Direction Control (`#windDirectionControl`)**: A circular control to set wind direction.

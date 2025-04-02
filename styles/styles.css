@@ -1,0 +1,392 @@
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    overflow: hidden;
+}
+#visualizationCanvas {
+    width: 100%;
+    height: 100vh;
+    display: block;
+}
+.slider-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    transform: translateX(0);
+    z-index: 10;
+    width: 80%;
+    max-width: 400px;
+    padding: 16px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Align items to the start (top in column) */
+}
+.slider-title {
+    color: #333;
+    font-size: 1.2em;
+    margin-bottom: 8px;
+    text-align: left; /* Changed to left */
+    width: 100%; /* Ensure title takes full width */
+}
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 80%; /* 80% of the container */
+    height: 6px;
+    border-radius: 5px;
+    background: #ddd;
+    outline: none;
+    -webkit-transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease;
+    margin-bottom: 10px;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #007bff;
+    cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #007bff;
+    cursor: pointer;
+}
+input[type="range"]:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+}
+input[type="range"]:focus::-moz-range-thumb {
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+}
+.bike-icon {
+    font-size: 24px;
+    color: #00ffff;
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+#windDirectionControl {
+    position: absolute;
+    left: 20px;
+    top: 60%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+}
+
+#windDirectionControl .compass-center {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #333;
+}
+
+#windDirectionControl .arrow {
+    width: 2px;
+    height: 40px;
+    background-color: #007bff;
+    position: absolute;
+    transform-origin: center;
+    transition: transform 0.1s ease;
+}
+
+#windDirectionControl .arrow::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -5px;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 10px solid #007bff;
+}
+
+#windDirectionControl .direction-label {
+    position: absolute;
+    font-size: 0.7em;
+    color: #666;
+    pointer-events: none;
+}
+
+#windDirectionControl .north {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#windDirectionControl .east {
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#windDirectionControl .south {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#windDirectionControl .west {
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.wind-arrow {
+    font-size: 16px;
+    color: rgba(0, 255, 255, 0.7);
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    pointer-events: none;
+}
+.slider-value {
+    color: #007bff; /* Changed to match slider thumb color */
+    font-size: 2.4em;
+    margin-left: 10px;
+    width: 20%;
+    text-align: center;
+    display: inline-block;
+}
+#powerDisplay {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 1.5em;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    margin-left: 100px;
+}
+#powerBulb {
+    position: absolute;
+    top: 100px;
+    right: 20px;
+    z-index: 10;
+    font-size: 4em;
+    color: #ffff00;
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.8);
+    cursor: pointer;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+#powerBulb:hover {
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(255, 255, 0, 1);
+}
+
+#heartBeatDisplay { /* New style for the heart rate display */
+    position: absolute;
+    top: 200px; /* Positioned below the power bulb */
+    right: 20px;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 1.5em;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    margin-left: 100px;
+}
+
+#heartBeatIcon {
+    position: absolute;
+    top: 300px; /* Adjust as needed to position it below heartBeatDisplay */
+    right: 30px; /* Adjust horizontal positioning as needed */
+    z-index: 10;
+    font-size: 4em; /* Adjust size as needed */
+    color: #ff4444; /* red */
+    animation: beat 1s infinite;
+    transform-origin: center;
+}
+@keyframes beat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+#helpButton {
+    position: absolute;
+    bottom: 150px; /* Position above infoButton */
+    right: 30px; /* Align with infoButton's right position */
+    z-index: 10;
+    cursor: pointer;
+    font-size: 3em;
+    color: #666;
+    transition: color 0.3s ease;
+}
+
+#helpButton:hover {
+    color: #007bff;
+}
+
+#helpButton i {
+    position: relative;
+    top: 2px;
+}
+
+#infoButton {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10;
+    padding: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    font-size: 1.5em;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px; /* Make it square */
+    height: 40px;
+    text-align: center; /* Center the icon */
+    line-height: 0; /* Vertically center the icon */
+}
+
+#infoButton:hover {
+    background-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.input-group-container {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    transform: translateX(0);
+    z-index: 10;
+    width: 80%;
+    max-width: 400px;
+    padding: 16px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 4px;
+    min-width: 80px;
+    max-width: 120px;
+}
+
+.input-label {
+    color: #333;
+    font-size: 0.85em;
+    margin-bottom: 4px;
+    text-align: center;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.input-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    z-index: 100;
+    width: 80%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.popup h2 {
+    font-size: 1.8em;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.popup p {
+    font-size: 1.1em;
+    line-height: 1.5;
+    color: #444;
+    margin-bottom: 10px;
+}
+
+.popup ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+
+.popup li {
+    font-size: 1.1em;
+    line-height: 1.5;
+    color: #444;
+}
+
+.popup strong {
+    font-weight: bold;
+    color: #333;
+}
+
+.popup a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.popup a:hover {
+    text-decoration: underline;
+}
+
+.popup-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #666;
+    transition: color 0.2s ease;
+}
+
+.popup-close:hover {
+    color: #333;
+}
